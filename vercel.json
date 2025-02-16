@@ -7,7 +7,7 @@
   },
   "rewrites": [
     {
-      "source": "/json/(.*)",
+      "source": "/wikipedia/json/(.*)",
       "destination": "/api/search?params=$1"
     }
   ]
