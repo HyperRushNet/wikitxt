@@ -7,7 +7,7 @@
   },
   "rewrites": [
     {
-      "source": "/poki/(.*)",
+      "source": "/json/(.*)",
       "destination": "/api/search?params=$1"
     }
   ]
