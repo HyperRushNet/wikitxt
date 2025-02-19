@@ -15,19 +15,21 @@ async function sendMessageToAI() {
             }),
         });
 
+        if (!response.ok) {
+            throw new Error(`API response failed with status: ${response.status}`);
+        }
+
         const data = await response.json();
         
         if (data.choices && data.choices.length > 0) {
             const aiResponse = document.createElement("div");
             aiResponse.classList.add("message", "aiMessage");
-            aiResponse.innerHTML = data.choices[0].message.content;  // Voeg de response tekst toe
+            aiResponse.innerHTML = data.choices[0].message.content;
 
-            document.body.appendChild(aiResponse);  // Voeg het nieuwe bericht toe aan de pagina
+            document.body.appendChild(aiResponse);
         }
     } catch (error) {
         console.error("Er is een fout opgetreden:", error);
+        alert("Er is een fout opgetreden, probeer het later opnieuw.");
     }
 }
-
-// Roep de functie aan om een bericht naar de AI te sturen
-sendMessageToAI();
