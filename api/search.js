@@ -1,6 +1,6 @@
 async function sendMessageToAI() {
     try {
-        // Definieer hier een statisch bericht om naar de AI te sturen
+        // Statisch bericht
         const messages = [
             { 
                 "role": "system", 
@@ -29,15 +29,20 @@ async function sendMessageToAI() {
         const data = await response.json();
 
         if (data.choices && data.choices.length > 0) {
-            alert(data.choices[0].message.content);
+            // Log het antwoord naar de console in plaats van alert
+            console.log(data.choices[0].message.content);
+            return { message: data.choices[0].message.content };
         } else {
             throw new Error("Geen keuze gevonden in de API-respons.");
         }
     } catch (error) {
         console.error("Fout gedetailleerd:", error);
-        alert(`Er is een fout opgetreden: ${error.message}`);
+        return { error: `Er is een fout opgetreden: ${error.message}` };
     }
 }
 
-// Roep de functie aan
-sendMessageToAI();
+// Roep de functie aan (als onderdeel van je serverless endpoint)
+export default async function handler(req, res) {
+    const result = await sendMessageToAI();
+    res.status(200).json(result);  // Geef het resultaat terug als JSON
+}
