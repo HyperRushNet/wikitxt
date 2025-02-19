@@ -1,7 +1,7 @@
 async function sendMessageToAI(req, res) {
     try {
-        // Haal de query-parameters op uit de URL (hier wordt aangenomen dat ze in 'messages' staan)
-        const urlMessages = req.query.messages || [];  // Zorg ervoor dat er berichten zijn in de URL
+        // Haal de berichtinhoud op uit de URL-paden
+        const message = req.query.params || "Geen bericht meegegeven"; // Als er geen bericht is, gebruik een fallback bericht
 
         // Statisch systeembericht
         const messages = [
@@ -9,7 +9,10 @@ async function sendMessageToAI(req, res) {
                 "role": "system", 
                 "content": "You are an AI that always responds in valid HTML but without unnecessary elements like <!DOCTYPE html>, <html>, <head>, or <body>. Only provide the essential HTML elements, such as <p>text</p>, or other inline and block elements depending on the context. Style links without the underline and #5EAEFF text. Mathjax is integrated. When the user wants to generate code, give them a link to /codegenerate.html"
             },
-            ...urlMessages  // Voeg de berichten uit de URL toe
+            { 
+                "role": "user", 
+                "content": message // Het bericht uit de URL gebruiken
+            }
         ];
 
         const response = await fetch('https://text.pollinations.ai/openai', {
