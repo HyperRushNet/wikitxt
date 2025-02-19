@@ -22,14 +22,16 @@ async function sendMessageToAI() {
         const data = await response.json();
         
         if (data.choices && data.choices.length > 0) {
-            const aiResponse = document.createElement("div");
-            aiResponse.classList.add("message", "aiMessage");
-            aiResponse.innerHTML = data.choices[0].message.content;
-
-            document.body.appendChild(aiResponse);
+            // Toon de AI-respons in een alert
+            alert(data.choices[0].message.content);
+        } else {
+            alert("Geen keuze gevonden in de API-respons.");
         }
     } catch (error) {
         console.error("Er is een fout opgetreden:", error);
         alert("Er is een fout opgetreden, probeer het later opnieuw.");
     }
 }
+
+// Roep de functie aan om een bericht naar de AI te sturen
+sendMessageToAI();
