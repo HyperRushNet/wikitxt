@@ -3,8 +3,8 @@ import { JSDOM } from 'jsdom';
 
 async function scrapeWikipedia(req, res) {
     try {
-        // Haal de Wikipedia URL op uit de padparameter
-        const wikipediaUrl = req.query[0]; // De URL wordt als path parameter doorgegeven, b.v. /wikipedia.org/https://en.m.wikipedia.org/wiki/2024
+        // Haal de Wikipedia URL op uit de path
+        const wikipediaUrl = req.query[0]; // De URL wordt als padparameter doorgegeven, b.v. /wikipedia/https://en.m.wikipedia.org/wiki/2025
 
         // Controleer of de URL is meegegeven
         if (!wikipediaUrl) {
@@ -14,7 +14,7 @@ async function scrapeWikipedia(req, res) {
         // Decodeer de URL die als path parameter is meegegeven
         const decodedUrl = decodeURIComponent(wikipediaUrl);
 
-        // Gebruik een proxy om de Wikipedia-pagina op te halen (in plaats van de originele cross-origin request)
+        // Gebruik een proxy om de Wikipedia-pagina op te halen
         const proxyUrl = 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(decodedUrl);
         const response = await fetch(proxyUrl);
 
