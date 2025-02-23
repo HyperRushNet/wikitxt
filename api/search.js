@@ -1,46 +1,62 @@
-async function sendMessageToAI(req, res) {
+import fetch from 'node-fetch';
+import { JSDOM } from 'jsdom';
+
+async function scrapeWikipedia(req, res) {
     try {
-        // Haal de berichtinhoud op uit de URL-paden
-        const message = req.query.params || "Geen bericht meegegeven"; // Als er geen bericht is, gebruik een fallback bericht
+        // Haal de Wikipedia URL op uit de padparameter
+        const wikipediaUrl = req.query[0]; // De URL wordt als path parameter doorgegeven, b.v. /wikipedia.org/https://en.m.wikipedia.org/wiki/2024
 
-        // Statisch systeembericht
-        const messages = [
-            { 
-                "role": "system", 
-                "content": "You are an AI that always responds in valid HTML but without unnecessary elements like <!DOCTYPE html>, <html>, <head>, or <body>. Only provide the essential HTML elements, such as <p>text</p>, or other inline and block elements depending on the context. Style links without the underline and #5EAEFF text. Mathjax is integrated. When the user wants to generate code, give them a link to /codegenerate.html"
-            },
-            { 
-                "role": "user", 
-                "content": message // Het bericht uit de URL gebruiken
-            }
-        ];
+        // Controleer of de URL is meegegeven
+        if (!wikipediaUrl) {
+            return res.status(400).send("Geen Wikipedia URL meegegeven.");
+        }
 
-        const response = await fetch('https://text.pollinations.ai/openai', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                messages: messages,
-                max_tokens: 100
-            }),
-        });
+        // Decodeer de URL die als path parameter is meegegeven
+        const decodedUrl = decodeURIComponent(wikipediaUrl);
+
+        // Gebruik een proxy om de Wikipedia-pagina op te halen (in plaats van de originele cross-origin request)
+        const proxyUrl = 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(decodedUrl);
+        const response = await fetch(proxyUrl);
 
         if (!response.ok) {
             throw new Error(`API response failed with status: ${response.status}`);
         }
 
-        const data = await response.json();
+        // Verkrijg de HTML-content van de Wikipedia-pagina
+        const html = await response.text();
 
-        if (data.choices && data.choices.length > 0) {
-            // Stuur alleen de pure tekst terug zonder JSON
-            res.status(200).send(data.choices[0].message.content);
-        } else {
-            res.status(400).send("Geen keuze gevonden in de API-respons.");
+        // Parseer de HTML met JSDOM
+        const dom = new JSDOM(html);
+        const document = dom.window.document;
+
+        // Selecteer de hoofdinhoud van de Wikipedia-pagina
+        const content = document.querySelector('.mw-parser-output');
+
+        if (!content) {
+            return res.status(400).send("Geen inhoud gevonden op de opgegeven Wikipedia-pagina.");
         }
+
+        // Verwijder ongewenste elementen zoals scripts en styles
+        content.querySelectorAll('script, style, .reflist, .reference, .mw-editsection, .navbox').forEach(el => el.remove());
+
+        // Verwijder links, maar behoud de tekst
+        content.querySelectorAll('a').forEach(link => {
+            link.replaceWith(document.createTextNode(link.textContent));
+        });
+
+        // Verwijder class-attributen uit alle elementen
+        content.querySelectorAll('[class]').forEach(el => el.removeAttribute('class'));
+
+        // Zet alles om in een lange string zonder overbodige witruimte
+        let text = content.textContent.replace(/\s+/g, ' ').trim();
+
+        // Verzend de gescrapete tekst als HTML zonder onnodige elementen
+        res.status(200).send(`<p>${text}</p>`);
     } catch (error) {
         console.error("Fout gedetailleerd:", error);
         res.status(500).send("Er is een fout opgetreden, probeer het later opnieuw.");
     }
 }
 
-// Exporteer de serverless functie (werkt met Vercel)
-export default sendMessageToAI;
+// Exporteer de serverless functie voor gebruik met Vercel
+export default scrapeWikipedia;
