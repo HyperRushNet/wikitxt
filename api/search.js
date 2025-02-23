@@ -5,7 +5,7 @@ const { JSDOM } = require('jsdom');
 async function scrapeWikipedia(req, res) {
     try {
         // Haal de Wikipedia-URL op uit de queryparameter
-        const wikipediaUrl = req.query.url; // De URL wordt als query parameter meegegeven, b.v. /wikipedia?url=https://en.m.wikipedia.org/wiki/2025
+        const wikipediaUrl = req.query.params; // De URL wordt als query parameter meegegeven, b.v. /wikipedia?params=https://en.m.wikipedia.org/wiki/2025
 
         if (!wikipediaUrl) {
             return res.status(400).send("Geen Wikipedia URL meegegeven.");
