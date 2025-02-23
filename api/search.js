@@ -1,21 +1,23 @@
 import fetch from 'node-fetch';
 import { JSDOM } from 'jsdom';
 
+// Asynchrone functie om de Wikipedia-pagina te scrapen
 async function scrapeWikipedia(req, res) {
     try {
-        // Haal de Wikipedia URL op uit de path
-        const wikipediaUrl = req.query[0]; // De URL wordt als padparameter doorgegeven, b.v. /wikipedia/https://en.m.wikipedia.org/wiki/2025
-
-        // Controleer of de URL is meegegeven
+        // Haal de Wikipedia URL op uit het pad
+        const wikipediaUrl = req.query[0]; // De URL wordt als path-parameter doorgegeven: /wikipedia/https://en.m.wikipedia.org/wiki/2025
+        
         if (!wikipediaUrl) {
             return res.status(400).send("Geen Wikipedia URL meegegeven.");
         }
 
-        // Decodeer de URL die als path parameter is meegegeven
+        // Decodeer de URL
         const decodedUrl = decodeURIComponent(wikipediaUrl);
 
         // Gebruik een proxy om de Wikipedia-pagina op te halen
         const proxyUrl = 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(decodedUrl);
+        
+        // Haal de HTML op van de Wikipedia-pagina
         const response = await fetch(proxyUrl);
 
         if (!response.ok) {
@@ -25,7 +27,7 @@ async function scrapeWikipedia(req, res) {
         // Verkrijg de HTML-content van de Wikipedia-pagina
         const html = await response.text();
 
-        // Parseer de HTML met JSDOM
+        // Gebruik JSDOM om de HTML te parseren
         const dom = new JSDOM(html);
         const document = dom.window.document;
 
@@ -58,5 +60,5 @@ async function scrapeWikipedia(req, res) {
     }
 }
 
-// Exporteer de serverless functie voor gebruik met Vercel
+// Exporteer de serverless functie voor Vercel
 export default scrapeWikipedia;
