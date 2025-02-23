@@ -1,11 +1,8 @@
-const fetch = require('node-fetch');
-const { JSDOM } = require('jsdom');
-
 // De asynchrone functie voor het scrapen van de Wikipedia-pagina
 async function scrapeWikipedia(req, res) {
     try {
         // Haal de Wikipedia-URL op uit de queryparameter
-        const wikipediaUrl = req.query.params; // De URL wordt als query parameter meegegeven, b.v. /wikipedia?params=https://en.m.wikipedia.org/wiki/2025
+        const wikipediaUrl = req.query.url;
 
         if (!wikipediaUrl) {
             return res.status(400).send("Geen Wikipedia URL meegegeven.");
@@ -14,9 +11,8 @@ async function scrapeWikipedia(req, res) {
         // Decodeer de URL
         const decodedUrl = decodeURIComponent(wikipediaUrl);
 
-        // Gebruik een proxy om de Wikipedia-pagina op te halen
-        const proxyUrl = 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(decodedUrl);
-        const response = await fetch(proxyUrl);
+        // Gebruik de ingebouwde fetch van Vercel
+        const response = await fetch(decodedUrl);
 
         if (!response.ok) {
             throw new Error(`API response failed with status: ${response.status}`);
@@ -25,30 +21,19 @@ async function scrapeWikipedia(req, res) {
         // Verkrijg de HTML-content van de Wikipedia-pagina
         const html = await response.text();
 
-        // Gebruik JSDOM om de HTML te parseren
-        const dom = new JSDOM(html);
-        const document = dom.window.document;
+        // Verwijder ongewenste elementen via stringmanipulatie
+        let cleanHtml = html.replace(/<script[^>]*>[\s\S]*?<\/script>/g, ''); // Verwijder <script> elementen
+        cleanHtml = cleanHtml.replace(/<style[^>]*>[\s\S]*?<\/style>/g, ''); // Verwijder <style> elementen
+        cleanHtml = cleanHtml.replace(/<a[^>]*>(.*?)<\/a>/g, '$1'); // Verwijder <a> tags maar behoud de tekst
 
-        // Selecteer de hoofdinhoud van de Wikipedia-pagina
-        const content = document.querySelector('.mw-parser-output');
+        // Gebruik een eenvoudige reguliere expressie om de tekst te extraheren
+        const contentMatch = cleanHtml.match(/<div class="mw-parser-output">([\s\S]+)<\/div>/);
 
-        if (!content) {
+        if (!contentMatch) {
             return res.status(400).send("Geen inhoud gevonden op de opgegeven Wikipedia-pagina.");
         }
 
-        // Verwijder ongewenste elementen zoals scripts en styles
-        content.querySelectorAll('script, style, .reflist, .reference, .mw-editsection, .navbox').forEach(el => el.remove());
-
-        // Verwijder links, maar behoud de tekst
-        content.querySelectorAll('a').forEach(link => {
-            link.replaceWith(document.createTextNode(link.textContent));
-        });
-
-        // Verwijder class-attributen uit alle elementen
-        content.querySelectorAll('[class]').forEach(el => el.removeAttribute('class'));
-
-        // Zet alles om in een lange string zonder overbodige witruimte
-        let text = content.textContent.replace(/\s+/g, ' ').trim();
+        let text = contentMatch[1].replace(/\s+/g, ' ').trim(); // Verwijder extra witruimte
 
         // Verzend de gescrapete tekst als antwoord
         res.status(200).send({ text });
