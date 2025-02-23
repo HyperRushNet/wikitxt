@@ -8,7 +8,7 @@
   "rewrites": [
     {
       "source": "/wikipedia",
-      "destination": "/api/search.js"
+      "destination": "/api/search"
     }
   ]
 }
