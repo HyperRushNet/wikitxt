@@ -1,12 +1,12 @@
-import fetch from 'node-fetch';
-import { JSDOM } from 'jsdom';
+const fetch = require('node-fetch');
+const { JSDOM } = require('jsdom');
 
-// Asynchrone functie om de Wikipedia-pagina te scrapen
+// De asynchrone functie voor het scrapen van de Wikipedia-pagina
 async function scrapeWikipedia(req, res) {
     try {
-        // Haal de Wikipedia URL op uit het pad
-        const wikipediaUrl = req.query[0]; // De URL wordt als path-parameter doorgegeven: /wikipedia/https://en.m.wikipedia.org/wiki/2025
-        
+        // Haal de Wikipedia-URL op uit de queryparameter
+        const wikipediaUrl = req.query.url; // De URL wordt als query parameter meegegeven, b.v. /wikipedia?url=https://en.m.wikipedia.org/wiki/2025
+
         if (!wikipediaUrl) {
             return res.status(400).send("Geen Wikipedia URL meegegeven.");
         }
@@ -16,8 +16,6 @@ async function scrapeWikipedia(req, res) {
 
         // Gebruik een proxy om de Wikipedia-pagina op te halen
         const proxyUrl = 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(decodedUrl);
-        
-        // Haal de HTML op van de Wikipedia-pagina
         const response = await fetch(proxyUrl);
 
         if (!response.ok) {
@@ -52,13 +50,13 @@ async function scrapeWikipedia(req, res) {
         // Zet alles om in een lange string zonder overbodige witruimte
         let text = content.textContent.replace(/\s+/g, ' ').trim();
 
-        // Verzend de gescrapete tekst als HTML zonder onnodige elementen
-        res.status(200).send(`<p>${text}</p>`);
+        // Verzend de gescrapete tekst als antwoord
+        res.status(200).send({ text });
     } catch (error) {
         console.error("Fout gedetailleerd:", error);
         res.status(500).send("Er is een fout opgetreden, probeer het later opnieuw.");
     }
 }
 
-// Exporteer de serverless functie voor Vercel
-export default scrapeWikipedia;
+// Exporteer de serverless functie voor gebruik met Vercel
+module.exports = scrapeWikipedia;
