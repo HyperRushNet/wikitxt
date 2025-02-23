@@ -4,8 +4,8 @@ const { JSDOM } = require('jsdom');
 // De asynchrone functie voor het scrapen van de Wikipedia-pagina
 async function scrapeWikipedia(req, res) {
     try {
-        // Haal de Wikipedia-URL op uit de queryparameter
-        const wikipediaUrl = req.query.params; // De URL wordt als query parameter meegegeven, b.v. /wikipedia?params=https://en.m.wikipedia.org/wiki/2025
+        // Haal de Wikipedia-URL op uit de queryparameter "params"
+        const wikipediaUrl = req.query.params; // De URL wordt als queryparameter meegegeven, bijv. /wikipedia?params=https://en.m.wikipedia.org/wiki/2025
 
         if (!wikipediaUrl) {
             return res.status(400).send("Geen Wikipedia URL meegegeven.");
